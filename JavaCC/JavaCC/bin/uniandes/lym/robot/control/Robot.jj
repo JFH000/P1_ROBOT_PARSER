@@ -30,7 +30,7 @@ import uniandes.lym.robot.view.Console;
 import java.awt.Point;
 import java.io.*;
 import java.util.Vector;
-import java.util.*;
+import java.util.LinkedList;
 
 @SuppressWarnings("serial")
 public class Robot 
@@ -51,8 +51,8 @@ PARSER_END(Robot)
 SKIP:
 {
 	" "
-	| "\r"
-	| "\t"
+	|	"\r"
+	|	"\t"
 	| "\n"
 }
 
