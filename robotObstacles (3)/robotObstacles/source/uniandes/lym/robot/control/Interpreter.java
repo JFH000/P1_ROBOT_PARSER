@@ -19,9 +19,12 @@ public class Interpreter   {
 	
 	private Console callingConsole;
 	
+	private Robot parser;
+	
 	
 	public Interpreter()
 	  {
+		parser = new Robot(System.in);
 	  }
 
 
@@ -31,11 +34,13 @@ public class Interpreter   {
 	 */
 
 
-	public Interpreter(RobotWorld world, Console c)
+	public Interpreter(RobotWorld w, Console c)
       {
-		this.world =  (RobotWorldDec) world;
+		this.world =  (RobotWorldDec) w;
+		parser = new Robot(System.in);
 		this.callingConsole = c;
 		c.printOutput("Enter a string of commands: \n");
+		parser.setWorld(world);
 	  }
 	
 	
@@ -47,6 +52,7 @@ public class Interpreter   {
 	public void setWorld(RobotWorld m) 
 	{
 		world = (RobotWorldDec) m;
+		parser.setWorld(m);
 		
 	}
 	/**
@@ -80,7 +86,42 @@ public class Interpreter   {
 	 * There may be spaces or newlines after the ;'s
 	 */
 	
-	public boolean process(String input) throws Error
+	public Boolean process(String input) {   
+		//Manda la cadena como stream al parser que procesa
+		parser.ReInit(new java.io.StringReader(input));
+		//StringBuffer salida=new StringBuffer("Sistema: \n-->");	
+		String salida="Sistema: \n-->";
+		callingConsole.printOutput(salida);
+		// mundo.resetStacks();
+		try {                  	
+			while (parser.command(callingConsole)){
+				//mundo.resetStacks();	
+				salida= " \n--> ";
+				callingConsole.printOutput(salida);
+			}
+		}  catch(ParseException pex) {		
+			//System.out.println(mundo.getValueStack());
+			salida = "Error de sintaxis:"+pex.getMessage()+" \n--> ";
+			callingConsole.printOutput(salida);
+			//mundo.cleanTemp();
+		} catch (Error err) {
+			//		 System.out.println("stack: "+mundo.getValueStack());
+			salida = "Error "+err.getMessage()+" \n--> ";
+			callingConsole.printOutput(salida);
+			//	 mundo.cleanTemp();
+		} catch (Exception error) {
+			// System.out.println(mundo.getValueStack());
+			salida = "Execution error!!"+error.getStackTrace()+" \n--> ";
+			callingConsole.printOutput(salida);
+			//mundo.cleanTemp();
+		}
+	   salida =	" End Input!!! \n";
+	   callingConsole.printOutput(salida);
+	   return true;
+		//mundo.cleanTemp();
+	}
+	
+	public boolean process2(String input) throws Error
      {   
 		
 		callingConsole.printOutput("Starting processing: \n ");
