@@ -171,11 +171,8 @@ public class Robot implements RobotConstants {
         n1_value = checkN(n1, map);
         n2_value = checkN(n2, map);
 
-                try {
-                        world.setPostion(n1_value, n2_value);
-                } catch (Exception e) {
-                  throw new IllegalArgumentException("No se puede ir a la posici\u00f3n (" + n1_value + ", " + n2_value + ").");
-                }
+                world.setPostion(n1_value, n2_value);
+
                 sistema.printOutput("GOTO con valores: " + n1_value + " y " + n2_value);
         //System.out.println("GOTO con valores: " + n1_value + " y " + n2_value);
 
@@ -270,6 +267,7 @@ public class Robot implements RobotConstants {
      ArrayList<Object> adds = (ArrayList<Object>) out.get(2);
      x = (String) adds.get(1);
      //TODO
+
          sistema.printOutput("PICK con valores: " + n + " y " + x);
     }
 
@@ -279,7 +277,15 @@ public class Robot implements RobotConstants {
      n = checkN((String) out.get(1), map);
      ArrayList<Object> adds = (ArrayList<Object>) out.get(2);
      x = (String) adds.get(1);
-     //TODO
+     try {
+       if (x.equals("#balloons")) {
+         world.putBalloons(n);
+       }else if (x.equals("#chips")) {
+         world.putChips(n);
+       }
+     }catch (Exception e) {
+       throw new IllegalArgumentException("No se puede poner " + x + " en la posici\u00f3n " + n + ".");
+     }
      sistema.printOutput("PUT con valores: " + n + " y " + x);
     }
 
