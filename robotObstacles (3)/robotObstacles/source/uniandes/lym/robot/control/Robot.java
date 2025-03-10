@@ -233,7 +233,33 @@ public class Robot implements RobotConstants {
     }
 
    public static void caseFace(String o, Map<String, Object> map) throws Exception{
-     //TODO
+     int faceMeta = -1;
+     if (o.equals("#north")) {
+       faceMeta = 0;
+     }else if (o.equals("#south")) {
+       faceMeta = 1;
+     }else if (o.equals("#east")) {
+       faceMeta = 2;
+     }else if (o.equals("#west")) {
+       faceMeta = 3;
+     }else {
+       throw new IllegalArgumentException("La direcci\u00f3n " + o + " no es v\u00e1lida.");
+     }
+
+//	public static final int NORTH = 0;
+//	public static final int SOUTH = 1;
+//	public static final int EAST = 2;
+//	public static final int WEST = 3;
+
+        while(true) {
+          int actualFace = world.getFacing();
+          if (actualFace == faceMeta) {
+        break; }
+
+      world.turnRight();
+
+        }
+
          sistema.printOutput("FACE con valor "+o);
     }
 
@@ -522,7 +548,8 @@ Integer id = createBlock(out);
           jj_consume_token(-1);
           throw new ParseException();
         }
-
+//sistema.printOutput(salida);
+          {if ("" != null) return true;}
         switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
         case PROC:
         case PIPE:
