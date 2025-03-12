@@ -25,7 +25,9 @@ public class Robot implements RobotConstants {
 
   String salida=new String();
 
+  /* ################################################################### */
 
+  //Variables utilizadas para ejecutar instrucciones
 
   private static final String CREATE_VARS = "createVar";
   private static final String ASSIGN_VAR = "assignVar";
@@ -52,269 +54,476 @@ public class Robot implements RobotConstants {
   private static final String PROCEDURE_DEF = "procedureDef";
   private static final String PROCEDURE_CALL = "procedureCall";
 
+  /* ################################################################### */
+
+  //Contadores para asignar ids como llaves a los maps de bloques y instrucciones
 
   private static Integer blockID = 0;
   private static Integer instructionID = 0;
 
+  //Guarda nombre, valor de variables globales
   private static Map<String, Object> globalVars = new HashMap<>();
+
+  //Guarda nombre, ( Map con name, localvars y block )
   private static Map<String, Object> procs = new HashMap<>();
+
+  //Guarda id, ( Map con id, localVars y instructions )
   private static Map<Integer,Map<String, Object>> blocks = new HashMap<>();
 
-        public static Integer getInstructionID() {
-        instructionID++;
-        return instructionID;
-    }
-
-        public static void createVars(ArrayList<String> vars, Map<String, Object> map) throws Exception {
-            for (String var : vars) {
-                String valor;
-                if (globalVars.containsKey(var) || map.containsKey(var)) {
-                    try {
-                      valor = map.get(var).toString();
-                   }catch (Exception e) {
-                  valor = "null";
-               }
-                    throw new IllegalArgumentException("La variable '" + var + "' ya fu\u00e9 creada, tiene el valor: " + valor);
-                }
-                map.put(var, null);
-                sistema.printOutput("Variable creada: " + var);
-                //System.out.println("Variable creada: " + var);
-            }
-        }
-
-        public static void assignVar(String var, String value, Map<String, Object> map) throws Exception{
-        if (!globalVars.containsKey(var) && !map.containsKey(var)) {
-            throw new IllegalArgumentException("La variable '" + var + "' no existe.");
-        }
-        Map<String, Object> map_out;
-        if (globalVars.containsKey(var)) {
-            map_out = globalVars;
-        }else{
-            map_out = map;
-        }
-
-        if (globalVars.containsKey(value)) {
-            map_out.put(var, getVar(value, globalVars));
-        }else if (map.containsKey(value)) {
-            map_out.put(var, map.get(value));
-        } else {
-            map_out.put(var, Integer.parseInt(value));
-        }
-            sistema.printOutput("Variable asignada: " + var + " con valor: " + map_out.get(var));
-        //System.out.println("Variable asignada: " + var + " con valor: " + map_out.get(var));
-      }
-
-    public static Integer getVar(String var, Map<String, Object> map) throws Exception{
-        if (!globalVars.containsKey(var) && !map.containsKey(var)) {
-            throw new IllegalArgumentException("La variable '" + var + "' no existe.");
-        }
-        if (globalVars.containsKey(var)) {
-            return (Integer) globalVars.get(var);
-        }else {
-            return (Integer) map.get(var);
-        }
-    }
-
-//Empieza aqui yo de mas tarde ;´p
-
-//    public static void createProc(String name, Map<String, Integer> localVars, ArrayList<Map<String, Object >> instructions) {
-//        for (Map<String, Object> proc : procs) {
-//            if (proc.containsKey(name)) {
-//                throw new IllegalArgumentException("El procedimiento '" + name + "' ya fué creado.");
-//            }
-//        }
-//        Map<String, Object> newProc = new HashMap<>();
-//        newProc.put("name", name);
-//        newProc.put("localVars", localVars);
-//        newProc.put("instructions", instructions);
-//        procs.add(newProc);
-//    }
-
-    public static Integer createBlock(Map<Integer, ArrayList<Object > > instructions) {
-          blockID++;
-          Map<String, Object> block = new HashMap<>();
-          Map<String, Integer> localVars = new HashMap<>();
-            block.put("id", blockID);
-            block.put("localVars", localVars);
-            block.put("instructions", instructions);
-            blocks.put(blockID, block);
-            sistema.printOutput("Bloque creado con id: " + blockID);
-                        //System.out.println("Bloque creado con id: " + blockID);
-          return blockID;
-    }
-
-    public static void executeBlock(Integer id) throws Exception{
-        Map<String,Object> block = blocks.get(id);
-        Map<String, Object> localVars = (Map<String, Object>) block.get("localVars");
-        Map<Integer, ArrayList <Object >> instructions = (Map<Integer, ArrayList<Object >>) block.get("instructions");
-        sistema.printOutput("Ejecutando bloque con id: " + id);
-        //System.out.println("Ejecutando bloque con id: " + id);
-        readInstructions(instructions, localVars);
-    }
-
-    public static Integer checkN(String n, Map<String, Object> map) {
-        Integer n_value;
-        if (globalVars.containsKey(n)) {
-            n_value = (Integer) globalVars.get(n);
-        }else if (map.containsKey(n)) {
-            n_value = (Integer) map.get(n);
-        }else {
-            n_value = Integer.parseInt(n);
-        }
-        return n_value;
-    }
-
-    public static void caseGoTo(String n1, String n2, Map<String, Object> map) throws Exception{
-        Integer n1_value;
-        Integer n2_value;
-
-        n1_value = checkN(n1, map);
-        n2_value = checkN(n2, map);
-
-                world.setPostion(n1_value, n2_value);
-
-                sistema.printOutput("GOTO con valores: " + n1_value + " y " + n2_value);
-        //System.out.println("GOTO con valores: " + n1_value + " y " + n2_value);
-
-    }
-
-    public static void caseMove(ArrayList<Object> out, Map<String, Object> map) throws Exception{
-                Integer n;
-                String operation;
-                String value;
-                n = checkN((String) out.get(1), map);
-                ArrayList<Object> adds = (ArrayList<Object>) out.get(2);
-                for (Object add : adds) {
-                  if((String)add == "toThe") {
-            operation = (String) add;
-            value = (String) adds.get(1);
-            //TODO
-            sistema.printOutput("MOVE con valores: " + n + " y " + value + " y " + operation);
-            //System.out.println("MOVE con valores: " + n + " y " + value + " y " + operation);
-                  }else if((String)add == "inDir") {
-            operation = (String) add;
-            value = (String) adds.get(1);
-            //TODO
-            sistema.printOutput("MOVE con valores: " + n + " y " + value + " y " + operation);
-            //System.out.println("MOVE con valores: " + n + " y " + value + " y " + operation);
-          }else {
-            operation = (String) add;
-            //TODO
-            sistema.printOutput("MOVE con valores: " + n + " y " + operation);
-            //System.out.println("MOVE con valores: " + n + " y " + operation);
-          }
-
-
-    }
-    //sistema.printOutput("MOVE con valor "+n);
-        //System.out.println("MOVE con valor "+n);    
-
+  public static Integer getInstructionID() {
+    instructionID++;
+    return instructionID;
   }
 
-  public static void caseTurn(String d, Map<String, Object> map) throws Exception{
-        try {
-          if (d.equals("#right")) {
-        world.turnRight();
-      }else if (d.equals("#left")) {
-        world.turnRight();
-        world.turnRight();
-        world.turnRight();
-      }else if (d.equals("#around")) {
-        world.turnRight();
-        world.turnRight();
+  /* ################################################################### */
+
+  /*
+  Aclaración importante:
+
+  	Todos los métodos reciben un Map<String, Object> map, esta estructura lleva las
+  	variables locales, entonces será muy comun ver que si se busca un N, este se busque en la variables
+  	globales o locales, y se devuelva el valor correspondiente.
+  */
+
+        /**
+	 * Crea variables en el mapa especificado.
+	 *
+	 * Este método itera sobre la lista de nombres de variables proporcionada en vars.
+	 * Para cada variable, verifica si ya existe en las variables globales (globalVars) o en el mapa proporcionado.
+	 * Si la variable ya existe, lanza una IllegalArgumentException indicando que la variable ya fue creada y mostrando su valor actual.
+	 * Si la variable no existe, la agrega al mapa con un valor null y se imprime un mensaje confirmando la creación de la variable.
+	 *
+	 * @param vars la lista de nombres de variables a crear.
+	 * @param map el mapa en el que se almacenarán las variables.
+	 * @throws Exception si alguna variable ya existe en globalVars o en el mapa.
+	 */
+        public static void createVars(ArrayList<String> vars, Map<String, Object> map) throws Exception {
+          for (String var : vars) {
+            String valor;
+            if (globalVars.containsKey(var) || map.containsKey(var)) {
+              try {
+                valor = map.get(var).toString();
+              }catch (Exception e) {
+            valor = "null";
+          }
+              throw new IllegalArgumentException("La variable '" + var + "' ya fu\u00e9 creada, tiene el valor: " + valor);
+            }
+            map.put(var, null);
+            sistema.printOutput("Variable creada: " + var);
+                //System.out.println("Variable creada: " + var);
+          }
+        }
+
+        /**
+	 * Asigna un valor a una variable existente.
+	 *
+	 * Verifica si la variable indicada existe en las variables globales o en el mapa local; de lo contrario, lanza
+	 * una IllegalArgumentException. Determina en qué mapa se encuentra la variable (globalVars o el mapa local) y
+	 * asigna el valor. Si el valor corresponde al nombre de otra variable existente, obtiene su valor; si no, lo
+	 * parsea como entero. Finalmente, imprime un mensaje confirmando la asignación.
+	 *
+	 * @param var nombre de la variable a asignar.
+	 * @param value valor a asignar, que puede ser el nombre de otra variable o una representación numérica en forma de cadena.
+	 * @param map mapa local de variables.
+	 * @throws Exception si la variable no existe en globalVars ni en el mapa.
+	 */
+        public static void assignVar(String var, String value, Map<String, Object> map) throws Exception{
+      if (!globalVars.containsKey(var) && !map.containsKey(var)) {
+        throw new IllegalArgumentException("La variable '" + var + "' no existe.");
       }
-        }catch (Exception e) {
-          throw new IllegalArgumentException("No se puede girar a la direcci\u00f3n " + d + ".");
-        }
-    sistema.printOutput("TURN con valor "+d);
+      Map<String, Object> map_out;
+      if (globalVars.containsKey(var)) {
+        map_out = globalVars;
+      }else{
+        map_out = map;
+      }
+
+      if (globalVars.containsKey(value)) {
+        map_out.put(var, getVar(value, globalVars));
+      }else if (map.containsKey(value)) {
+        map_out.put(var, map.get(value));
+      } else {
+        map_out.put(var, Integer.parseInt(value));
+      }
+          sistema.printOutput("Variable asignada: " + var + " con valor: " + map_out.get(var));
+        //System.out.println("Variable asignada: " + var + " con valor: " + map_out.get(var));
     }
 
-   public static void caseFace(String o, Map<String, Object> map) throws Exception{
-     int faceMeta = -1;
-     if (o.equals("#north")) {
-       faceMeta = 0;
-     }else if (o.equals("#south")) {
-       faceMeta = 1;
-     }else if (o.equals("#east")) {
-       faceMeta = 2;
-     }else if (o.equals("#west")) {
-       faceMeta = 3;
-     }else {
-       throw new IllegalArgumentException("La direcci\u00f3n " + o + " no es v\u00e1lida.");
+        /**
+	 * Obtiene el valor entero de una variable del mapa especificado.
+	 * 
+	 * Verifica si la variable existe en las variables globales o en el mapa local. Si la variable no existe en ninguno de los dos,
+	 * lanza una IllegalArgumentException. Si la variable se encuentra en globalVars, retorna su valor; de lo contrario, retorna
+	 * el valor de la variable en el mapa local.
+	 * 
+	 * @param var el nombre de la variable a obtener.
+	 * @param map el mapa local de variables.
+	 * @return el valor entero de la variable.
+	 * @throws Exception si la variable no existe en globalVars ni en el mapa.
+	 */
+    public static Integer getVar(String var, Map<String, Object> map) throws Exception{
+      if (!globalVars.containsKey(var) && !map.containsKey(var)) {
+        throw new IllegalArgumentException("La variable '" + var + "' no existe.");
+      }
+      if (globalVars.containsKey(var)) {
+        return (Integer) globalVars.get(var);
+      }else {
+        return (Integer) map.get(var);
+      }
+    }
+
+        /**
+	 * Crea un bloque y lo registra.
+	 *
+	 * Incrementa el identificador del bloque, crea un nuevo bloque con un mapa para variables locales y un conjunto de instrucciones,
+	 * y lo añade a la colección de bloques. Finalmente, imprime un mensaje indicando el ID del bloque creado y retorna dicho ID.
+	 *
+	 * @param instructions Mapa que asocia enteros a listas de instrucciones para el bloque.
+	 * @return El identificador único del bloque creado.
+	 */
+    public static Integer createBlock(Map<Integer, ArrayList<Object > > instructions) {
+      blockID++;
+      Map<String, Object> block = new HashMap<>();
+      Map<String, Integer> localVars = new HashMap<>();
+
+      block.put("id", blockID);
+      block.put("localVars", localVars);
+      block.put("instructions", instructions);
+      blocks.put(blockID, block);
+      sistema.printOutput("Bloque creado con id: " + blockID);
+          //System.out.println("Bloque creado con id: " + blockID);
+      return blockID;
+    }
+
+        /**
+	 * Ejecuta el bloque identificado por el id proporcionado.
+	 *
+	 * Recupera el bloque del mapa de bloques, extrae las variables locales y las instrucciones,
+	 * imprime un mensaje indicando la ejecución y llama al método readInstructions para procesar las instrucciones.
+	 *
+	 * @param id el identificador del bloque a ejecutar.
+	 * @return el resultado booleano de la ejecución de las instrucciones.
+	 * @throws Exception si ocurre algún error durante la ejecución del bloque.
+	 */
+    public static Boolean executeBlock(Integer id) throws Exception{
+      Map<String,Object> block = blocks.get(id);
+      Map<String, Object> localVars = (Map<String, Object>) block.get("localVars");
+      Map<Integer, ArrayList <Object >> instructions = (Map<Integer, ArrayList<Object >>) block.get("instructions");
+      sistema.printOutput("Ejecutando bloque con id: " + id);
+        //System.out.println("Ejecutando bloque con id: " + id);
+      return readInstructions(instructions, localVars);
+    }
+
+        /**
+	 * Verifica y obtiene el valor entero asociado a la variable 'n'.
+	 * Busca la variable 'n' en las variables globales y en el mapa local. Si se encuentra, retorna su valor como Integer.
+	 * Si no se encuentra, convierte la cadena 'n' a entero utilizando Integer.parseInt.
+	 *
+	 * @param n la cadena que representa el nombre de la variable o un valor numérico.
+	 * @param map el mapa local de variables.
+	 * @return el valor entero correspondiente a 'n'.
+	 */
+    public static Integer checkN(String n, Map<String, Object> map) {
+      Integer n_value;
+      if (globalVars.containsKey(n)) {
+        n_value = (Integer) globalVars.get(n);
+      }else if (map.containsKey(n)) {
+        n_value = (Integer) map.get(n);
+      }else {
+        n_value = Integer.parseInt(n);
+      }
+      return n_value;
+    }
+
+        /**
+	 * Realiza la operación de GOTO actualizando la posición del robot.
+	 *
+	 * Convierte las cadenas n1 y n2 a valores enteros utilizando el método checkN y establece la posición en la matriz
+	 * mediante world.setPostion. Finalmente, imprime un mensaje que indica los valores utilizados en la operación.
+	 *
+	 * @param n1 la cadena que representa el primer valor para la posición o el nombre de una variable.
+	 * @param n2 la cadena que representa el segundo valor para la posición o el nombre de una variable.
+	 * @param map el mapa local de variables para evaluar n1 y n2.
+	 * @throws Exception si ocurre algún error durante la conversión de valores o al actualizar la posición.
+	 */
+    public static void caseGoTo(String n1, String n2, Map<String, Object> map) throws Exception{
+      Integer n1_value;
+      Integer n2_value;
+
+      n1_value = checkN(n1, map);
+      n2_value = checkN(n2, map);
+
+          world.setPostion(n1_value, n2_value);
+
+      sistema.printOutput("GOTO con valores: " + n1_value + " y " + n2_value);
+        //System.out.println("GOTO con valores: " + n1_value + " y " + n2_value);
+    }
+
+        /**
+	 * Ejecuta la operación de movimiento.
+	 *
+	 * Este método obtiene el valor n de la lista de objetos y evalúa instrucciones adicionales para determinar
+	 * la dirección del movimiento. Si la lista de instrucciones no está vacía y su primer elemento es "toThe",
+	 * se selecciona la dirección (#front, #right, #left, #back) y se ejecuta una serie de comandos de giro y movimiento.
+	 * Si el primer elemento es "inDir", se ajusta la orientación mediante caseFace antes de mover hacia adelante.
+	 * En ausencia de instrucciones adicionales, simplemente se mueve hacia adelante.
+	 *
+	 * @param out la lista de objetos que contiene el valor n y una lista de instrucciones adicionales.
+	 * @param map el mapa de variables para interpretar el valor n.
+	 * @throws Exception si ocurre algún error durante la evaluación de las instrucciones o el movimiento.
+	 */
+    public static void caseMove(ArrayList<Object> out, Map<String, Object> map) throws Exception{
+      Integer n;
+          String operation;
+          String value;
+
+          n = checkN((String) out.get(1), map);
+          ArrayList<Object> adds = (ArrayList<Object>) out.get(2);
+          System.out.println("ADD: " + adds);
+
+      if(!adds.isEmpty()) {
+            if(adds.get(0).equals("toThe")) {
+                  operation = (String) adds.get(1);
+                  if(operation.equals("#front")) {
+                    world.moveForward(n, false);
+                  } else if(operation.equals("#right")) {
+                    world.turnRight();
+                    world.moveForward(n, false);
+                    world.turnRight();
+                    world.turnRight();
+                    world.turnRight();
+          } else if(operation.equals("#left")) {
+            world.turnRight();
+                    world.turnRight();
+                    world.turnRight();
+                    world.moveForward(n, false);
+                    world.turnRight();
+          } else if(operation.equals("#back")) {
+            world.turnRight();
+                    world.turnRight();
+                    world.moveForward(n, false);
+                    world.turnRight();
+                    world.turnRight();
+          }
+                }else if(adds.get(0).equals("inDir")) {
+          operation = (String) adds.get(1);
+          System.out.println("OPPPERATION inDir: " + operation);
+          caseFace(operation, map);
+          world.moveForward(n, false);
+        }
+      }else {
+            world.moveForward(n, false);
+          }
+    }
+
+        /**
+	 * Hace que el robot gire en una dirección específica.
+	 *
+	 * Verifica el valor de la dirección y ejecuta los comandos correspondientes:
+	 * - "#right": gira a la derecha.
+	 * - "#left": gira a la izquierda (tres giros a la derecha).
+	 * - "#around": gira 180 grados (dos giros a la derecha).
+	 *
+	 * Si ocurre un error durante la operación, lanza una IllegalArgumentException indicando que no se puede girar en la dirección dada.
+	 * Al finalizar, imprime un mensaje confirmando la dirección del giro.
+	 *
+	 * @param d la dirección en la que se desea girar, representada como una cadena.
+	 * @param map el mapa de variables (no utilizado en esta implementación).
+	 * @throws Exception si no se puede realizar el giro en la dirección indicada.
+	 */
+    public static void caseTurn(String d, Map<String, Object> map) throws Exception{
+      try {
+            if (d.equals("#right")) {
+          world.turnRight();
+        }else if (d.equals("#left")) {
+          world.turnRight();
+          world.turnRight();
+          world.turnRight();
+        }else if (d.equals("#around")) {
+          world.turnRight();
+          world.turnRight();
+        }
+      }catch (Exception e) {
+            throw new IllegalArgumentException("No se puede girar a la direcci\u00f3n " + d + ".");
+          }
+      sistema.printOutput("TURN con valor "+d);
+    }
+
+        /**
+	 * Ajusta la orientación del robot para que coincida con la dirección especificada.
+	 *
+	 * Convierte la dirección indicada en un valor numérico:
+	 * - "#north" se traduce a 0.
+	 * - "#south" se traduce a 1.
+	 * - "#east" se traduce a 2.
+	 * - "#west" se traduce a 3.
+	 *
+	 * Si la dirección no es válida, lanza una IllegalArgumentException.
+	 * Posteriormente, gira hacia la derecha repetidamente hasta que la orientación actual del mundo sea la deseada.
+	 * Finalmente, imprime un mensaje indicando la orientación establecida.
+	 *
+	 * @param o la cadena que representa la dirección deseada.
+	 * @param map el mapa de variables (no utilizado en este método).
+	 * @throws Exception si la dirección no es válida o ocurre algún error durante el ajuste de la orientación.
+	 */
+    public static void caseFace(String o, Map<String, Object> map) throws Exception{
+      int faceMeta = -1;
+      if (o.equals("#north")) {
+        faceMeta = 0;
+      }else if (o.equals("#south")) {
+        faceMeta = 1;
+      }else if (o.equals("#east")) {
+        faceMeta = 2;
+      }else if (o.equals("#west")) {
+        faceMeta = 3;
+      }else {
+        throw new IllegalArgumentException("La direcci\u00f3n " + o + " no es v\u00e1lida.");
+      }
+
+          while(true) {
+            int actualFace = world.getFacing();
+        if (actualFace == faceMeta) {
+          break;
+        }
+        world.turnRight();
+          }
+          sistema.printOutput("FACE con valor "+o);
+    }
+
+        /**
+	 * Ejecuta la acción de recoger objetos (balloons o chips).
+	 *
+	 * Extrae el valor n (número de veces) desde la lista 'out' y lo evalúa usando checkN con el mapa 'map'.
+	 * A continuación, obtiene el tipo de objeto a recoger desde una sublista de 'out'. Si el tipo es "#balloons",
+	 * llama a world.pickupBalloon n veces; si es "#chips", llama a world.pickupChip n veces.
+	 * Finalmente, imprime un mensaje indicando los valores utilizados en la operación.
+	 *
+	 * @param out la lista de objetos que contiene el valor n y una lista de instrucciones adicionales para la recogida.
+	 * @param map el mapa de variables utilizado para interpretar el valor n.
+	 * @throws Exception si ocurre algún error durante la evaluación de los valores o la ejecución de la recogida.
+	 */
+    public static void casePick(ArrayList<Object> out, Map<String, Object> map) throws Exception{
+      Integer n;
+      String x;
+      n = checkN((String) out.get(1), map);
+      ArrayList<Object> adds = (ArrayList<Object>) out.get(2);
+      x = (String) adds.get(1);
+
+      if (x.equals("#balloons")) {
+        for(int i = 0; i < n; i++) {
+          world.pickupBalloon();
+        }
+      }else if (x.equals("#chips")) {
+        for(int i = 0; i < n; i++) {
+          world.pickupChip();
+        }
+      }
+          sistema.printOutput("PICK con valores: " + n + " y " + x);
+    }
+
+        /**
+	 * Realiza la operación de colocar objetos.
+	 * 
+	 * Extrae el valor n (número de objetos) desde la lista 'out' y lo evalúa usando checkN con el mapa 'map'.
+	 * Luego obtiene el tipo de objeto a colocar desde la sublista 'adds'. Si el tipo es "#balloons", llama a world.putBalloons(n);
+	 * si es "#chips", llama a world.putChips(n). Si ocurre un error durante la operación, lanza una IllegalArgumentException.
+	 * Finalmente, imprime un mensaje indicando los valores utilizados.
+	 *
+	 * @param out la lista de objetos que contiene el valor n y una sublista de instrucciones adicionales.
+	 * @param map el mapa de variables utilizado para interpretar el valor n.
+	 * @throws Exception si ocurre algún error durante la evaluación o ejecución de la operación.
+	 */
+    public static void casePut(ArrayList<Object> out, Map<String, Object> map) throws Exception{
+      Integer n;
+      String x;
+      n = checkN((String) out.get(1), map);
+      ArrayList<Object> adds = (ArrayList<Object>) out.get(2);
+      x = (String) adds.get(1);
+      try {
+        if (x.equals("#balloons")) {
+          world.putBalloons(n);
+        }else if (x.equals("#chips")) {
+          world.putChips(n);
+        }
+      }catch (Exception e) {
+        throw new IllegalArgumentException("No se puede poner " + x + " en la posici\u00f3n " + n + ".");
+      }
+      sistema.printOutput("PUT con valores: " + n + " y " + x);
      }
 
-//	public static final int NORTH = 0;
-//	public static final int SOUTH = 1;
-//	public static final int EAST = 2;
-//	public static final int WEST = 3;
-
-        while(true) {
-          int actualFace = world.getFacing();
-          if (actualFace == faceMeta) {
-        break; }
-
-      world.turnRight();
-
-        }
-
-         sistema.printOutput("FACE con valor "+o);
-    }
-
-   public static void casePick(ArrayList<Object> out, Map<String, Object> map) throws Exception{
-     Integer n;
-     String x;
-     n = checkN((String) out.get(1), map);
-     ArrayList<Object> adds = (ArrayList<Object>) out.get(2);
-     x = (String) adds.get(1);
-     //TODO
-
-         sistema.printOutput("PICK con valores: " + n + " y " + x);
-    }
-
-   public static void casePut(ArrayList<Object> out, Map<String, Object> map) throws Exception{
-     Integer n;
-     String x;
-     n = checkN((String) out.get(1), map);
-     ArrayList<Object> adds = (ArrayList<Object>) out.get(2);
-     x = (String) adds.get(1);
-     try {
-       if (x.equals("#balloons")) {
-         world.putBalloons(n);
-       }else if (x.equals("#chips")) {
-         world.putChips(n);
-       }
-     }catch (Exception e) {
-       throw new IllegalArgumentException("No se puede poner " + x + " en la posici\u00f3n " + n + ".");
-     }
-     sistema.printOutput("PUT con valores: " + n + " y " + x);
-    }
-
+        /**
+	 * Ejecuta una operación de moverse podiendo saltar.
+	 *
+	 * Extrae la distancia 'n' del salto de la lista 'out' utilizando checkN y obtiene una lista de instrucciones adicionales.
+	 * Si la lista de instrucciones no está vacía, determina el tipo de salto a realizar:
+	 * - Si el primer elemento es "toThe", extrae la dirección (por ejemplo, "#front", "#right", "#left", "#back")
+	 *   y ejecuta el salto realizando los giros necesarios antes de mover.
+	 * - Si el primer elemento es "inDir", ajusta la orientación con caseFace y luego realiza el salto.
+	 *
+	 * Se utiliza world.moveForward(n, true) para efectuar el salto, indicando que es una operación de salto.
+	 *
+	 * @param out lista de objetos que contiene el valor 'n' y las instrucciones adicionales para el salto.
+	 * @param map mapa de variables utilizado para interpretar el valor 'n'.
+	 * @throws Exception si ocurre algún error durante la evaluación o ejecución de la operación.
+	 */
     public static void caseJump(ArrayList<Object> out, Map<String, Object> map) throws Exception{
       Integer n;
       String operation;
       String value;
       n = checkN((String) out.get(1), map);
       ArrayList<Object> adds = (ArrayList<Object>) out.get(2);
-      for (Object add : adds) {
-        if((String)add == "toThe") {
-            operation = (String) add;
-            value = (String) adds.get(1);
-            //TODO
-            sistema.printOutput("JUMP con valores: " + n + " y " + value + " y " + operation);
-        }else if((String)add == "inDir") {
-            operation = (String) add;
-            value = (String) adds.get(1);
-            //TODO
-            sistema.printOutput("JUMP con valores: " + n + " y " + value + " y " + operation);
+
+      if(!adds.isEmpty()) {
+        if(adds.get(0).equals("toThe")) {
+          operation = (String) adds.get(1);
+          Point p = world.getPosition();
+          if(operation.equals("#front")) {
+            world.moveForward(n, true);
+          } else if(operation.equals("#right")) {
+            world.turnRight();
+            world.moveForward(n, true);
+            world.turnRight();
+            world.turnRight();
+            world.turnRight();
+          } else if(operation.equals("#left")) {
+            world.turnRight();
+            world.turnRight();
+            world.turnRight();
+            world.moveForward(n, true);
+            world.turnRight();
+          } else if(operation.equals("#back")) {
+            world.turnRight();
+            world.turnRight();
+            world.moveForward(n, true);
+            world.turnRight();
+            world.turnRight();
+          }
+        }else if(adds.get(0).equals("inDir")) {
+          operation = (String) adds.get(1);
+          caseFace(operation, map);
+          world.moveForward(n, true);
         }
       }
-      //sistema.printOutput("JUMP con valor "+n);
     }
 
+    /**
+     * No hace nada :/
+     */
     public static void caseNop() {
       sistema.printOutput("NOP");
     }
 
+        /**
+	 * Ejecuta un bucle de instrucciones basado en una condición.
+	 *
+	 * Obtiene la condición del bucle de la lista 'out' e imprime su valor. En cada iteración, evalúa la condición
+	 * usando checkCondition; si es verdadera, recupera y ejecuta las instrucciones del mapa proporcionado. El bucle
+	 * se interrumpe cuando la condición evaluada es falsa.
+	 *
+	 * @param out la lista de objetos que contiene la condición y el mapa de instrucciones a ejecutar en cada iteración.
+	 * @param map el mapa de variables utilizado para evaluar la condición y ejecutar las instrucciones.
+	 * @throws Exception si ocurre algún error durante la evaluación de la condición o la ejecución de las instrucciones.
+	 */
     public static void caseLoop(ArrayList<Object> out, Map<String, Object> map) throws Exception{
       Boolean conditionVal =true;
       ArrayList<Object> condition = (ArrayList<Object>) out.get(1);
@@ -332,6 +541,18 @@ public class Robot implements RobotConstants {
       }
     }
 
+        /**
+	 * Ejecuta una estructura condicional basada en una condición.
+	 *
+	 * Evalúa la condición proporcionada en el primer elemento de la lista 'out' utilizando checkCondition.
+	 * Imprime un mensaje indicando la ejecución de la estructura condicional.
+	 * Si la condición es verdadera, recupera y ejecuta las instrucciones del mapa en el segundo elemento de 'out';
+	 * de lo contrario, ejecuta las instrucciones del mapa en el tercer elemento.
+	 *
+	 * @param out lista de objetos que contiene la condición y dos mapas de instrucciones para los casos verdadero y falso.
+	 * @param map el mapa de variables utilizado para evaluar la condición y ejecutar las instrucciones.
+	 * @throws Exception si ocurre algún error durante la evaluación de la condición o la ejecución de las instrucciones.
+	 */
     public static void caseConditional(ArrayList<Object> out, Map<String, Object> map) throws Exception{
 
       Boolean conditionVal = checkCondition((ArrayList<Object>)out.get(1), map);
@@ -347,27 +568,231 @@ public class Robot implements RobotConstants {
       }
     }
 
+        /**
+	 * Evalúa una condición representada como una lista de objetos.
+	 *
+	 * Este método toma una lista en la que el primer elemento indica el tipo de condición y, según ese tipo,
+	 * evalúa diferentes estados del robot utilizando métodos de world. Los tipos de condiciones manejados
+	 * incluyen:
+	 * - FACING_C: Verifica la orientación actual del mundo en relación con una dirección especificada (#north, #south, #east, #west).
+	 * - CAN_PUT: Comprueba si se pueden colocar un número específico de objetos (#balloons o #chips) según el estado actual.
+	 * - CAN_PICK: Verifica si se pueden recoger un número determinado de objetos (#balloons o #chips) en la posición actual.
+	 * - CAN_MOVE: Determina si es posible mover al robot una cierta distancia en una dirección relativa (por ejemplo, #front, #right, #left, #back)
+	 *   sin que se encuentren obstáculos en el rango indicado.
+	 * - CAN_JUMP: Similar a CAN_MOVE, pero evalúa la posibilidad de saltar a una posición sin bloqueos, utilizando comprobaciones puntuales.
+	 * - NOT_: Invierte el resultado de la evaluación de una condición secundaria.
+	 *
+	 * Para cada caso, el método extrae los parámetros necesarios de la lista y utiliza el mapa de variables para resolver valores.
+	 *
+	 * @param condition lista de objetos que define la condición a evaluar.
+	 * @param map mapa de variables utilizado para interpretar valores numéricos o referencias.
+	 * @return true si la condición se cumple, false en caso contrario.
+	 * @throws Exception si ocurre un error durante la evaluación de la condición.
+	 */
     public static Boolean checkCondition(ArrayList<Object> condition, Map<String, Object> map) throws Exception{
-                String type = (String) condition.get(0);
-                Boolean out = false;
+          String type = (String) condition.get(0);
+          for(Object o : condition) {
+        System.out.println("checkCondition: " + o);
+      }
+      Boolean out = false;
       if (type.equals(FACING_C)) {
-        //TODO
-        sistema.printOutput("FACING_C");
+        String face = (String) condition.get(1);
+        if (face.equals("#north")) {
+          return world.facingNorth();
+        }else if (face.equals("#south")) {
+          return world.facingSouth();
+        }else if (face.equals("#east")) {
+          return world.facingEast();
+        }else if (face.equals("#west")) {
+          return world.facingWest();
+        }else {
           return out;
+        }
       }else if (type.equals(CAN_PUT)) {
-        //TODO
+        int n = checkN((String) condition.get(1), map);
+                String x = (String) ((ArrayList<String >)condition.get(2)).get(1);
+        if (x.equals("#balloons")) {
+                return world.getMyBalloons() >= n;
+            } else if (x.equals("#chips")) {
+                return world.getMyChips() >= n && world.freeSpacesForChips() >= n;
+            }
         sistema.printOutput("CAN_PUT");
           return out;
       }else if (type.equals(CAN_PICK)) {
-        //TODO
+        int n = checkN((String) condition.get(1), map);
+                String x = (String) ((ArrayList<String >)condition.get(2)).get(1);
+        if (x.equals("#balloons")) {
+                return world.countBalloons(world.getPosition()) >= n;
+            } else if (x.equals("#chips")) {
+                return world.chipsToPick() >= n;
+            }
         sistema.printOutput("CAN_PICK");
           return out;
       }else if (type.equals(CAN_MOVE)) {
-        //TODO
+            int n = checkN((String) condition.get(1), map);
+            String x = (String) ((ArrayList<String>) condition.get(2)).get(1);
+            String op = (String) ((ArrayList<String>) condition.get(2)).get(0);
+            Point pos = world.getPosition();
+            int boardSize = world.getN();
+            int facing = world.getFacing();
+
+            if (op.equals("toThe")) {
+                if (x.equals("#front")) {
+                    if (facing == RobotWorld.NORTH) {
+                        int newY = pos.y - n;
+                        return (newY >= 1) && (!world.blockedInRange(pos.x, pos.y, newY, RobotWorld.NORTH));
+                    } else if (facing == RobotWorld.SOUTH) {
+                        int newY = pos.y + n;
+                        return (newY <= boardSize) && (!world.blockedInRange(pos.x, pos.y, newY, RobotWorld.SOUTH));
+                    } else if (facing == RobotWorld.EAST) {
+                        int newX = pos.x + n;
+                        return (newX <= boardSize) && (!world.blockedInRange(pos.x, pos.y, newX, RobotWorld.EAST));
+                    } else if (facing == RobotWorld.WEST) {
+                        int newX = pos.x - n;
+                        return (newX >= 1) && (!world.blockedInRange(pos.x, pos.y, newX, RobotWorld.WEST));
+                    }
+                } else if (x.equals("#right")) {
+                    if (facing == RobotWorld.NORTH) {
+                        int newX = pos.x + n; // derecha es este
+                        return (newX <= boardSize) && (!world.blockedInRange(pos.x, pos.y, newX, RobotWorld.EAST));
+                    } else if (facing == RobotWorld.SOUTH) {
+                        int newX = pos.x - n; // derecha es oeste
+                        return (newX >= 1) && (!world.blockedInRange(pos.x, pos.y, newX, RobotWorld.WEST));
+                    } else if (facing == RobotWorld.EAST) {
+                        int newY = pos.y + n; // derecha es sur
+                        return (newY <= boardSize) && (!world.blockedInRange(pos.x, pos.y, newY, RobotWorld.SOUTH));
+                    } else if (facing == RobotWorld.WEST) {
+                        int newY = pos.y - n; // derecha es norte
+                        return (newY >= 1) && (!world.blockedInRange(pos.x, pos.y, newY, RobotWorld.NORTH));
+                    }
+                } else if (x.equals("#left")) {
+                    if (facing == RobotWorld.NORTH) {
+                        int newX = pos.x - n; // izquierda es oeste
+                        return (newX >= 1) && (!world.blockedInRange(pos.x, pos.y, newX, RobotWorld.WEST));
+                    } else if (facing == RobotWorld.SOUTH) {
+                        int newX = pos.x + n; // izquierda es este
+                        return (newX <= boardSize) && (!world.blockedInRange(pos.x, pos.y, newX, RobotWorld.EAST));
+                    } else if (facing == RobotWorld.EAST) {
+                        int newY = pos.y - n; // izquierda es norte
+                        return (newY >= 1) && (!world.blockedInRange(pos.x, pos.y, newY, RobotWorld.NORTH));
+                    } else if (facing == RobotWorld.WEST) {
+                        int newY = pos.y + n; // izquierda es sur
+                        return (newY <= boardSize) && (!world.blockedInRange(pos.x, pos.y, newY, RobotWorld.SOUTH));
+                    }
+                } else if (x.equals("#back")) {
+                    if (facing == RobotWorld.NORTH) {
+                        int newY = pos.y + n; // atrás es sur
+                        return (newY <= boardSize) && (!world.blockedInRange(pos.x, pos.y, newY, RobotWorld.SOUTH));
+                    } else if (facing == RobotWorld.SOUTH) {
+                        int newY = pos.y - n; // atrás es norte
+                        return (newY >= 1) && (!world.blockedInRange(pos.x, pos.y, newY, RobotWorld.NORTH));
+                    } else if (facing == RobotWorld.EAST) {
+                        int newX = pos.x - n; // atrás es oeste
+                        return (newX >= 1) && (!world.blockedInRange(pos.x, pos.y, newX, RobotWorld.WEST));
+                    } else if (facing == RobotWorld.WEST) {
+                        int newX = pos.x + n; // atrás es este
+                        return (newX <= boardSize) && (!world.blockedInRange(pos.x, pos.y, newX, RobotWorld.EAST));
+                    }
+                }
+            } else if (op.equals("inDir")) {
+                if (x.equals("#north")) {
+                    int newY = pos.y - n;
+                    return (newY >= 1) && (!world.blockedInRange(pos.x, pos.y, newY, RobotWorld.NORTH));
+                } else if (x.equals("#south")) {
+                    int newY = pos.y + n;
+                    return (newY <= boardSize) && (!world.blockedInRange(pos.x, pos.y, newY, RobotWorld.SOUTH));
+                } else if (x.equals("#east")) {
+                    int newX = pos.x + n;
+                    return (newX <= boardSize) && (!world.blockedInRange(pos.x, pos.y, newX, RobotWorld.EAST));
+                } else if (x.equals("#west")) {
+                    int newX = pos.x - n;
+                    return (newX >= 1) && (!world.blockedInRange(pos.x, pos.y, newX, RobotWorld.WEST));
+                }
+            }
         sistema.printOutput("CAN_MOVE");
           return out;
       }else if (type.equals(CAN_JUMP)) {
-        //TODO
+            int n = checkN((String) condition.get(1), map);
+            String x = (String) ((ArrayList<String>) condition.get(2)).get(1);
+            String op = (String) ((ArrayList<String>) condition.get(2)).get(0);
+            Point pos = world.getPosition();
+            int boardSize = world.getN();
+            int facing = world.getFacing();
+
+            if (op.equals("toThe")) {
+                if (x.equals("#front")) {
+                    if (facing == RobotWorld.NORTH) {
+                        int newY = pos.y - n;
+                        return (newY >= 1) && (!world.isBlocked(new Point(pos.x, newY)));
+                    } else if (facing == RobotWorld.SOUTH) {
+                        int newY = pos.y + n;
+                        return (newY <= boardSize) && (!world.isBlocked(new Point(pos.x, newY)));
+                    } else if (facing == RobotWorld.EAST) {
+                        int newX = pos.x + n;
+                        return (newX <= boardSize) && (!world.isBlocked(new Point(newX, pos.y)));
+                    } else if (facing == RobotWorld.WEST) {
+                        int newX = pos.x - n;
+                        return (newX >= 1) && (!world.isBlocked(new Point(newX, pos.y)));
+                    }
+                } else if (x.equals("#right")) {
+                    if (facing == RobotWorld.NORTH) {
+                        int newX = pos.x + n; // derecha es este
+                        return (newX <= boardSize) && (!world.isBlocked(new Point(newX, pos.y)));
+                    } else if (facing == RobotWorld.SOUTH) {
+                        int newX = pos.x - n; // derecha es oeste
+                        return (newX >= 1) && (!world.isBlocked(new Point(newX, pos.y)));
+                    } else if (facing == RobotWorld.EAST) {
+                        int newY = pos.y + n; // derecha es sur
+                        return (newY <= boardSize) && (!world.isBlocked(new Point(pos.x, newY)));
+                    } else if (facing == RobotWorld.WEST) {
+                        int newY = pos.y - n; // derecha es norte
+                        return (newY >= 1) && (!world.isBlocked(new Point(pos.x, newY)));
+                    }
+                } else if (x.equals("#left")) {
+                    if (facing == RobotWorld.NORTH) {
+                        int newX = pos.x - n; // izquierda es oeste
+                        return (newX >= 1) && (!world.isBlocked(new Point(newX, pos.y)));
+                    } else if (facing == RobotWorld.SOUTH) {
+                        int newX = pos.x + n; // izquierda es este
+                        return (newX <= boardSize) && (!world.isBlocked(new Point(newX, pos.y)));
+                    } else if (facing == RobotWorld.EAST) {
+                        int newY = pos.y - n; // izquierda es norte
+                        return (newY >= 1) && (!world.isBlocked(new Point(pos.x, newY)));
+                    } else if (facing == RobotWorld.WEST) {
+                        int newY = pos.y + n; // izquierda es sur
+                        return (newY <= boardSize) && (!world.isBlocked(new Point(pos.x, newY)));
+                    }
+                } else if (x.equals("#back")) {
+                    if (facing == RobotWorld.NORTH) {
+                        int newY = pos.y + n; // atrás es sur
+                        return (newY <= boardSize) && (!world.isBlocked(new Point(pos.x, newY)));
+                    } else if (facing == RobotWorld.SOUTH) {
+                        int newY = pos.y - n; // atrás es norte
+                        return (newY >= 1) && (!world.isBlocked(new Point(pos.x, newY)));
+                    } else if (facing == RobotWorld.EAST) {
+                        int newX = pos.x - n; // atrás es oeste
+                        return (newX >= 1) && (!world.isBlocked(new Point(newX, pos.y)));
+                    } else if (facing == RobotWorld.WEST) {
+                        int newX = pos.x + n; // atrás es este
+                        return (newX <= boardSize) && (!world.isBlocked(new Point(newX, pos.y)));
+                    }
+                }
+            } else if (op.equals("inDir")) {
+                if (x.equals("#north")) {
+                    int newY = pos.y - n;
+                    return (newY >= 1) && (!world.isBlocked(new Point(pos.x, newY)));
+                } else if (x.equals("#south")) {
+                    int newY = pos.y + n;
+                    return (newY <= boardSize) && (!world.isBlocked(new Point(pos.x, newY)));
+                } else if (x.equals("#east")) {
+                    int newX = pos.x + n;
+                    return (newX <= boardSize) && (!world.isBlocked(new Point(newX, pos.y)));
+                } else if (x.equals("#west")) {
+                    int newX = pos.x - n;
+                    return (newX >= 1) && (!world.isBlocked(new Point(newX, pos.y)));
+                }
+            }
+
         sistema.printOutput("CAN_JUMP");
           return out;
       }else if (type.equals(NOT_)) {
@@ -378,49 +803,83 @@ public class Robot implements RobotConstants {
       }
     }
 
+        /**
+	 * Ejecuta un bucle de repetición para procesar un conjunto de instrucciones.
+	 *
+	 * Obtiene el número de repeticiones a partir de la lista 'out' usando checkN, imprime un mensaje con dicho valor,
+	 * y ejecuta las instrucciones definidas en el mapa mientras el contador sea mayor que cero.
+	 *
+	 * @param out la lista de objetos que contiene el número de repeticiones y el mapa de instrucciones a ejecutar.
+	 * @param map el mapa de variables utilizado para evaluar el número de repeticiones y pasar contexto a las instrucciones.
+	 * @throws Exception si ocurre algún error durante la evaluación o la ejecución de las instrucciones.
+	 */
     public static void caseRepeat(ArrayList<Object> out, Map<String, Object> map) throws Exception{
-                Integer n = checkN((String) out.get(1), map);
-                sistema.printOutput("REPEAT con valor "+n);
+          Integer n = checkN((String) out.get(1), map);
+          sistema.printOutput("REPEAT con valor "+n);
                 //System.out.println("REPEAT con valor "+n);
-                Map<Integer, ArrayList<Object>> instructions = (Map<Integer, ArrayList<Object>>) out.get(2);
-                while(true) {
-                  if(n == 0) {
-            break;
-          }else {
-            readInstructions(instructions, map);
-            n--;
-          }
-                }
+          Map<Integer, ArrayList<Object>> instructions = (Map<Integer, ArrayList<Object>>) out.get(2);
+          while(true) {
+            if(n == 0) {
+          break;
+        }else {
+          readInstructions(instructions, map);
+          n--;
+        }
+      }
     }
 
+        /**
+	 * Define un nuevo procedimiento a partir de la estructura proporcionada.
+	 *
+	 * Extrae la definición del procedimiento desde la lista 'out', donde el elemento en la posición 1 es un mapa que
+	 * contiene las claves "name", "block" y "params". La clave "name" representa el nombre del procedimiento, "block" es el
+	 * bloque de instrucciones que constituye el cuerpo del procedimiento, y "params" es la lista de parámetros.
+	 * Verifica si ya existe un procedimiento con el mismo nombre en el registro 'procs' y, de ser así, lanza una
+	 * IllegalArgumentException. Si no, crea el procedimiento y lo almacena en el registro, imprimiendo mensajes de confirmación.
+	 *
+	 * @param out lista de objetos que contiene la definición del procedimiento.
+	 * @param map mapa de variables (no utilizado directamente en este método).
+	 * @throws Exception si el procedimiento ya fue creado.
+	 */
     public static void caseProcedureDef(ArrayList<Object> out, Map<String, Object> map) throws Exception{
-                //Falta chekear que el procedimiento no se repita
-                Map<String, Object> util = (Map<String, Object>) out.get(1);
-                String name = String.join("", (ArrayList<String>)util.get("name"));
-                Map<Integer, ArrayList<Object>> block = (Map<Integer, ArrayList<Object>>)util.get("block");
-                ArrayList<String > params = (ArrayList<String>)util.get("params");
+          Map<String, Object> util = (Map<String, Object>) out.get(1);
+          String name = String.join("", (ArrayList<String>)util.get("name"));
+          Map<Integer, ArrayList<Object>> block = (Map<Integer, ArrayList<Object>>)util.get("block");
+          ArrayList<String > params = (ArrayList<String>)util.get("params");
+          if (procs.containsKey(name)) {
+        throw new IllegalArgumentException("El procedimiento '" + name + "' ya fu\u00e9 creado.");
+      }
+          Map<String, Object> proc = new HashMap<>();
+          proc.put("name", name);
+          proc.put("block", block);
+          proc.put("params", params);
+          procs.put(name, proc);
 
-                Map<String, Object> proc = new HashMap<>();
-                proc.put("name", name);
-                proc.put("block", block);
-                proc.put("params", params);
-                procs.put(name, proc);
-
-                sistema.printOutput("PROCEDURE DEF con nombre: " + name + " y parametros: " + params);
-                sistema.printOutput("PROCEDURE DEF con block: " + block);
-                //System.out.println("PROCEDURE DEF con nombre: " + name + " y parametros: " + params);
-                //System.out.println("PROCEDURE DEF con block: " + block);
-
-
+          sistema.printOutput("PROCEDURE DEF con nombre: " + name + " y parametros: " + params);
+          sistema.printOutput("PROCEDURE DEF con block: " + block);
     }
 
+        /**
+	 * Llama a un procedimiento definido previamente.
+	 *
+	 * Extrae de la lista 'out' la información necesaria para identificar el procedimiento a llamar, incluyendo su nombre y los parámetros.
+	 * Verifica que el procedimiento exista en el registro global 'procs'. Recupera el bloque de instrucciones y la lista de parámetros
+	 * definidos para el procedimiento. Crea un mapa local de variables y asigna a cada parámetro el valor correspondiente obtenido
+	 * a través del método checkN. Si el procedimiento no existe o los parámetros no coinciden con la definición, lanza una
+	 * IllegalArgumentException. Finalmente, imprime un mensaje de confirmación y ejecuta el bloque de instrucciones utilizando las
+	 * variables locales.
+	 *
+	 * @param out lista de objetos que contiene la información necesaria para la llamada al procedimiento.
+	 * @param map mapa de variables utilizado para resolver los valores de los parámetros.
+	 * @throws Exception si el procedimiento no existe o si se producen errores al asignar los parámetros.
+	 */
     public static void caseProcedureCall(ArrayList<Object> out, Map<String, Object> map) throws Exception{
 
       Map<String, Object> util = (Map<String, Object>) out.get(1);
       String name = String.join("", (ArrayList<String>)util.get("name"));
       ArrayList<String> params = (ArrayList<String>)util.get("params");
       if (!procs.containsKey(name)) {
-          throw new IllegalArgumentException("El procedimiento '" + name + "' no existe.");
+        throw new IllegalArgumentException("El procedimiento '" + name + "' no existe.");
       }
       Map<String, Object> proc = (Map<String,Object >)procs.get(name);
       Map<Integer, ArrayList<Object>> block = (Map<Integer, ArrayList<Object>>)proc.get("block");
@@ -433,56 +892,83 @@ public class Robot implements RobotConstants {
           throw new IllegalArgumentException("El procedimiento '" + name + "' no tiene los parametros correctos.");
         }
       sistema.printOutput("PROCEDURE CALL con nombre: " + name + " y parametros: " + localVars);
-      //System.out.println("PROCEDURE CALL con nombre: " + name + " y parametros: " + localVars);
-
       readInstructions(block, localVars);
-
-
     }
 
-    public static void readInstructions(Map<Integer,ArrayList<Object >> instructions, Map<String, Object> map) throws Exception {
+        /**
+	 * Procesa y ejecuta un conjunto de instrucciones.
+	 *
+	 * Este método recorre un mapa de instrucciones, donde cada entrada es una lista de objetos que representa una instrucción.
+	 * Para cada instrucción, se realiza una pausa de 1 segundo y se imprime el tipo de instrucción. Según el tipo, se invoca
+	 * el método correspondiente para ejecutar la acción, utilizando los parámetros proporcionados y el mapa de variables.
+	 * Si ocurre alguna excepción durante la ejecución de una instrucción, se imprime el mensaje de error y se retorna false.
+	 * Si todas las instrucciones se ejecutan correctamente, retorna true.
+	 *
+	 * @param instructions mapa que asocia un identificador entero a una lista de objetos que define una instrucción.
+	 * @param map el mapa de variables utilizado durante la ejecución de las instrucciones.
+	 * @return true si todas las instrucciones se ejecutan sin errores, false en caso contrario.
+	 */
+    public static Boolean readInstructions(Map<Integer,ArrayList<Object >> instructions, Map<String, Object> map) {
       for (Map.Entry<Integer, ArrayList<Object>> entry : instructions.entrySet()) {
-          ArrayList<Object> instruction = entry.getValue();
-          String type = (String) instruction.get(0);
-          sistema.printOutput("Instrucci\u00f3n: " + type);
-          //System.out.println("Instrucción: " + type);
-          if (type.equals(CREATE_VARS)) {
-              createVars((ArrayList<String>) instruction.get(1), map);
-          } else if (type.equals(ASSIGN_VAR)) {
-              assignVar((String) instruction.get(1), (String) instruction.get(2), map);
-          }else if (type.equals(GO_TO)) {
-              caseGoTo((String) instruction.get(1), (String) instruction.get(2), map);
-          }else if (type.equals(MOVE_I)) {
-              caseMove((ArrayList<Object>)instruction, map);
-          }else if (type.equals(TURN_I)) {
-              caseTurn((String) instruction.get(1), map);
-          }else if (type.equals(FACE_I)) {
-              caseFace((String) instruction.get(1), map);
-          }else if (type.equals(PICK_I)) {
-              casePick((ArrayList<Object>)instruction, map);
-          }else if (type.equals(PUT_I)) {
-              casePut((ArrayList<Object>)instruction, map);
-          }else if (type.equals(JUMP_I)) {
-              caseJump((ArrayList<Object>)instruction, map);
-          }else if (type.equals(NOP_I)) {
-              caseNop();
-          }else if (type.equals(LOOP_C)) {
-              caseLoop(instruction, map);
-          }else if (type.equals(CONDITIONAL_C)) {
-              caseConditional(instruction, map);
-          }else if (type.equals(REPEAT_C)) {
-              caseRepeat(instruction, map);
-          }else if (type.equals(PROCEDURE_DEF)) {
-              caseProcedureDef(instruction, map);
-          }else if (type.equals(PROCEDURE_CALL)) {
-              caseProcedureCall(instruction, map);
+                  try {
+                      Thread.sleep(1000);
+                  ArrayList<Object> instruction = entry.getValue();
+                  String type = (String) instruction.get(0);
+                  sistema.printOutput("Instrucci\u00f3n: " + type);
+                  //System.out.println("Instrucción: " + type);
+                  if (type.equals(CREATE_VARS)) {
+                      createVars((ArrayList<String>) instruction.get(1), map);
+                  } else if (type.equals(ASSIGN_VAR)) {
+                      assignVar((String) instruction.get(1), (String) instruction.get(2), map);
+                  }else if (type.equals(GO_TO)) {
+                      caseGoTo((String) instruction.get(1), (String) instruction.get(2), map);
+                  }else if (type.equals(MOVE_I)) {
+                      caseMove((ArrayList<Object>)instruction, map);
+                  }else if (type.equals(TURN_I)) {
+                      caseTurn((String) instruction.get(1), map);
+                  }else if (type.equals(FACE_I)) {
+                      caseFace((String) instruction.get(1), map);
+                  }else if (type.equals(PICK_I)) {
+                      casePick((ArrayList<Object>)instruction, map);
+                  }else if (type.equals(PUT_I)) {
+                      casePut((ArrayList<Object>)instruction, map);
+                  }else if (type.equals(JUMP_I)) {
+                      caseJump((ArrayList<Object>)instruction, map);
+                  }else if (type.equals(NOP_I)) {
+                      caseNop();
+                  }else if (type.equals(LOOP_C)) {
+                      caseLoop(instruction, map);
+                  }else if (type.equals(CONDITIONAL_C)) {
+                      caseConditional(instruction, map);
+                  }else if (type.equals(REPEAT_C)) {
+                      caseRepeat(instruction, map);
+                  }else if (type.equals(PROCEDURE_DEF)) {
+                      caseProcedureDef(instruction, map);
+                  }else if (type.equals(PROCEDURE_CALL)) {
+                      caseProcedureCall(instruction, map);
+                  }
+              }catch (Exception e) {
+              sistema.printOutput(e.getMessage());
+              return false;
           }
       }
+      return true;
     }
 
+/**
+ * Procesa y ejecuta un comando desde la consola.
+ *
+ * Llama a createSistema y, según el comando, ejecuta:
+ * - Definición de variables
+ * - Asignación de variables
+ * - Llamada o definición de procedimientos
+ * - Ejecución de bloques
+ *
+ * @param sistema la consola de entrada
+ * @return true si se ejecuta un comando; false en EOF
+ * @throws Exception si ocurre un error durante la ejecución
+ */
   final public Boolean command(Console sistema) throws ParseException, Exception {createSistema(sistema);
-  //salida = new String();
-
     switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
     case PROC:
     case PIPE:
@@ -499,7 +985,7 @@ ArrayList<String> vars;
 instruction.add(CREATE_VARS);
           instruction.add(vars);
           instructions.put(getInstructionID(), instruction);
-          try { readInstructions(instructions, globalVars); {if ("" != null) return true;}} catch (Exception e) {{if ("" != null) return false;}}
+          {if ("" != null) return readInstructions(instructions, globalVars);}
           break;
           }
         case WORD:{
@@ -510,9 +996,9 @@ Token t; Boolean colon = false;
 ArrayList<Object> out;
             out = variable_assignment(t);
 instruction.add(ASSIGN_VAR);
-                      instruction.addAll(out);
-                      instructions.put(getInstructionID(), instruction);
-                      try { readInstructions(instructions, globalVars);} catch (Exception e) {{if ("" != null) return false;}}
+                              instruction.addAll(out);
+                              instructions.put(getInstructionID(), instruction);
+                              {if ("" != null) return readInstructions(instructions, globalVars);}
             break;
             }
           case DOT:
@@ -523,7 +1009,7 @@ Map<String, Object > out;
 instruction.add(PROCEDURE_CALL);
                       instruction.add(out);
                       instructions.put(getInstructionID(), instruction);
-                      try { readInstructions(instructions, globalVars);} catch (Exception e) {{if ("" != null) return false;}}
+                      {if ("" != null) return readInstructions(instructions, globalVars);}
             break;
             }
           default:
@@ -539,14 +1025,14 @@ Map<String, Object > out;
 instruction.add(PROCEDURE_DEF);
             instruction.add(out);
             instructions.put(getInstructionID(), instruction);
-            try { readInstructions(instructions, globalVars);} catch (Exception e) {{if ("" != null) return false;}}
+            {if ("" != null) return readInstructions(instructions, globalVars);}
           break;
           }
         case LSQUARE:{
 Map<Integer, ArrayList<Object>> out;
           out = block();
 Integer id = createBlock(out);
-            try { executeBlock(id);} catch (Exception e) {{if ("" != null) return false;}}
+            {if ("" != null) return executeBlock(id);}
           break;
           }
         default:
@@ -554,8 +1040,6 @@ Integer id = createBlock(out);
           jj_consume_token(-1);
           throw new ParseException();
         }
-//sistema.printOutput(salida);
-          {if ("" != null) return true;}
         switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
         case PROC:
         case PIPE:
@@ -584,6 +1068,13 @@ Integer id = createBlock(out);
     throw new Error("Missing return statement in function");
 }
 
+/**
+ * Extrae una lista de variables definidas entre dos tokens PIPE.
+ *
+ * Recolecta los tokens WORD entre los delimitadores PIPE y los agrega a un ArrayList.
+ *
+ * @return la lista de nombres de variables definidos.
+ */
   final public ArrayList<String> variable_definition() throws ParseException {ArrayList<String> vars = new ArrayList<String>();
   Token t;
     jj_consume_token(PIPE);
@@ -606,6 +1097,14 @@ vars.add(t.image);
     throw new Error("Missing return statement in function");
 }
 
+/**
+ * Define un procedimiento.
+ *
+ * Extrae el nombre, parámetros opcionales y el bloque de instrucciones del procedimiento.
+ * Devuelve un mapa con las claves "name", "params" y "block".
+ *
+ * @return mapa con la definición del procedimiento
+ */
   final public Map<String, Object> procedure_definition() throws ParseException {Token t;
   Token v;
   ArrayList<String> name = new ArrayList<String>();
@@ -637,9 +1136,7 @@ params.add(v.image);
         jj_la1[6] = jj_gen;
         break label_3;
       }
-      // Luego, mientras se observe que hay otro par (señalado por un WORD seguido de COLON)
-                     //LOOKAHEAD( <WORD> <COLON> )
-                     t = jj_consume_token(WORD);
+      t = jj_consume_token(WORD);
       jj_consume_token(COLON);
       v = jj_consume_token(WORD);
 name.add(t.image); params.add(v.image);
@@ -652,10 +1149,14 @@ out.put("name", name);
     throw new Error("Missing return statement in function");
 }
 
-//Map<String, Integer> localVars, ArrayList<Map<String, Object >> instructions
+/**
+ * Procesa un bloque de instrucciones y retorna un mapa con ellas.
+ *
+ * Lee instrucciones entre LSQUARE y RSQUARE y las añade al mapa.
+ *
+ * @return mapa de instrucciones
+ */
   final public Map<Integer, ArrayList<Object>> block() throws ParseException {Map<Integer, ArrayList<Object>> instructions = new LinkedHashMap<>();
-  //ArrayList<Object> instruction = new ArrayList<>();
-
     jj_consume_token(LSQUARE);
     label_4:
     while (true) {
@@ -709,7 +1210,7 @@ ArrayList<Object> instruction = new ArrayList<>();
 Map<String, Object > out;
           out = procedure_call(t);
 ArrayList<Object> instruction = new ArrayList<>();
-            instruction.add(PROCEDURE_DEF);
+            instruction.add(PROCEDURE_CALL);
             instruction.add(out);
             instructions.put(getInstructionID(), instruction);
           break;
@@ -829,8 +1330,15 @@ ArrayList<Object> instruction = new ArrayList<>();
     throw new Error("Missing return statement in function");
 }
 
+/**
+ * Realiza la asignación de un valor a la variable especificada.
+ *
+ * Toma la imagen del token de la variable y el valor obtenido, los agrega a una lista y la retorna.
+ *
+ * @param var Token que representa la variable.
+ * @return Lista con el nombre de la variable y el valor asignado.
+ */
   final public ArrayList<Object> variable_assignment(Token var) throws ParseException {ArrayList<Object> out = new ArrayList<Object>();
-//  Token var;
   Token value;
     jj_consume_token(ASSIGN);
     value = N();
@@ -841,6 +1349,13 @@ out.add(var.image);
     throw new Error("Missing return statement in function");
 }
 
+/**
+ * Extrae dos números de tokens y los retorna en una lista.
+ *
+ * Procesa la instrucción GOTO, leyendo dos valores numéricos y agregándolos a una lista.
+ *
+ * @return Lista que contiene los valores de n1 y n2.
+ */
   final public ArrayList<Object> goTo() throws ParseException {Token n1;
   Token n2;
     jj_consume_token(GOTO);
@@ -857,6 +1372,11 @@ ArrayList<Object> out = new ArrayList<Object>();
     throw new Error("Missing return statement in function");
 }
 
+/**
+ * Devuelve un token que es NUM o WORD.
+ *
+ * @return el token obtenido.
+ */
   final public Token N() throws ParseException {Token t;
     switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
     case NUM:{
@@ -876,18 +1396,23 @@ ArrayList<Object> out = new ArrayList<Object>();
     throw new Error("Missing return statement in function");
 }
 
+/**
+ * Devuelve la dirección de giro (#right, #left o #around).
+ *
+ * @return la imagen del token de giro.
+ */
   final public String D_turn() throws ParseException {Token t;
     switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
+    case 46:{
+      t = jj_consume_token(46);
+      break;
+      }
+    case 47:{
+      t = jj_consume_token(47);
+      break;
+      }
     case 48:{
       t = jj_consume_token(48);
-      break;
-      }
-    case 49:{
-      t = jj_consume_token(49);
-      break;
-      }
-    case 50:{
-      t = jj_consume_token(50);
       break;
       }
     default:
@@ -899,22 +1424,27 @@ ArrayList<Object> out = new ArrayList<Object>();
     throw new Error("Missing return statement in function");
 }
 
+/**
+ * Devuelve la dirección (#front, #right, #left o #back).
+ *
+ * @return la imagen del token que representa la dirección.
+ */
   final public String D() throws ParseException {Token t;
     switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
-    case 51:{
-      t = jj_consume_token(51);
-      break;
-      }
-    case 48:{
-      t = jj_consume_token(48);
-      break;
-      }
     case 49:{
       t = jj_consume_token(49);
       break;
       }
-    case 52:{
-      t = jj_consume_token(52);
+    case 46:{
+      t = jj_consume_token(46);
+      break;
+      }
+    case 47:{
+      t = jj_consume_token(47);
+      break;
+      }
+    case 50:{
+      t = jj_consume_token(50);
       break;
       }
     default:
@@ -926,22 +1456,27 @@ ArrayList<Object> out = new ArrayList<Object>();
     throw new Error("Missing return statement in function");
 }
 
+/**
+ * Devuelve la orientación (#north, #south, #east o #west).
+ *
+ * @return la imagen del token de orientación.
+ */
   final public String O() throws ParseException {Token t;
     switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
+    case 51:{
+      t = jj_consume_token(51);
+      break;
+      }
+    case 52:{
+      t = jj_consume_token(52);
+      break;
+      }
     case 53:{
       t = jj_consume_token(53);
       break;
       }
     case 54:{
       t = jj_consume_token(54);
-      break;
-      }
-    case 55:{
-      t = jj_consume_token(55);
-      break;
-      }
-    case 56:{
-      t = jj_consume_token(56);
       break;
       }
     default:
@@ -953,14 +1488,19 @@ ArrayList<Object> out = new ArrayList<Object>();
     throw new Error("Missing return statement in function");
 }
 
+/**
+ * Devuelve el objeto (#balloons o #chips).
+ *
+ * @return la imagen del token que representa el objeto.
+ */
   final public String X() throws ParseException {Token t;
     switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
-    case 57:{
-      t = jj_consume_token(57);
+    case 55:{
+      t = jj_consume_token(55);
       break;
       }
-    case 58:{
-      t = jj_consume_token(58);
+    case 56:{
+      t = jj_consume_token(56);
       break;
       }
     default:
@@ -972,10 +1512,12 @@ ArrayList<Object> out = new ArrayList<Object>();
     throw new Error("Missing return statement in function");
 }
 
-  final public void variable() throws ParseException {
-    jj_consume_token(VARNAME);
-}
-
+/**
+ * Procesa la instrucción toThe.
+ * Lee el token TOTHE y la dirección mediante D(), y retorna una lista con ambos.
+ *
+ * @return Lista que contiene el token TOTHE y la dirección.
+ */
   final public ArrayList<Object > toThe() throws ParseException {Token t;
   String d;
     t = jj_consume_token(TOTHE);
@@ -988,6 +1530,12 @@ ArrayList<Object> out = new ArrayList<Object>();
     throw new Error("Missing return statement in function");
 }
 
+/**
+ * Procesa la instrucción inDir.
+ * Lee el token INDIR y la orientación mediante O(), y retorna una lista con ambos.
+ *
+ * @return Lista que contiene el token INDIR y la orientación.
+ */
   final public ArrayList<Object> inDir() throws ParseException {Token t;
   String o;
     t = jj_consume_token(INDIR);
@@ -1000,6 +1548,12 @@ ArrayList<Object> out = new ArrayList<Object>();
     throw new Error("Missing return statement in function");
 }
 
+/**
+ * Procesa la instrucción ofType.
+ * Lee el token OFTYPE y el tipo de objeto mediante X(), y retorna una lista con ambos.
+ *
+ * @return Lista que contiene el token OFTYPE y el tipo de objeto.
+ */
   final public ArrayList<Object> ofType() throws ParseException {Token t;
   String x;
     t = jj_consume_token(OFTYPE);
@@ -1012,6 +1566,12 @@ ArrayList<Object> out = new ArrayList<Object>();
     throw new Error("Missing return statement in function");
 }
 
+/**
+ * Procesa la instrucción MOVE.
+ * Lee un número y, opcionalmente, una dirección (inDir o toThe) y retorna una lista con ambos.
+ *
+ * @return Lista con el valor numérico y la dirección opcional.
+ */
   final public ArrayList<Object> move() throws ParseException {Token n;
   ArrayList<Object> out = new ArrayList<Object>();
     jj_consume_token(MOVE);
@@ -1048,6 +1608,12 @@ ArrayList<Object> out2 = new ArrayList<>();
     throw new Error("Missing return statement in function");
 }
 
+/**
+ * Procesa la instrucción TURN.
+ * Lee la dirección de giro mediante D_turn() y la retorna.
+ *
+ * @return La dirección de giro.
+ */
   final public String turn() throws ParseException {String d;
     jj_consume_token(TURN);
     jj_consume_token(COLON);
@@ -1057,6 +1623,12 @@ ArrayList<Object> out2 = new ArrayList<>();
     throw new Error("Missing return statement in function");
 }
 
+/**
+ * Procesa la instrucción FACE.
+ * Lee la orientación mediante O() y la retorna.
+ *
+ * @return La orientación.
+ */
   final public String face() throws ParseException {String o;
     jj_consume_token(FACE);
     jj_consume_token(COLON);
@@ -1066,6 +1638,12 @@ ArrayList<Object> out2 = new ArrayList<>();
     throw new Error("Missing return statement in function");
 }
 
+/**
+ * Procesa la instrucción PUT.
+ * Lee un número y el tipo de objeto (ofType) y retorna una lista con ambos.
+ *
+ * @return Lista con el valor numérico y el tipo de objeto.
+ */
   final public ArrayList<Object> put() throws ParseException {Token n;
   ArrayList<Object> of = new ArrayList<Object>();
     jj_consume_token(PUT);
@@ -1080,6 +1658,12 @@ ArrayList<Object> out = new ArrayList<Object>();
     throw new Error("Missing return statement in function");
 }
 
+/**
+ * Procesa la instrucción PICK.
+ * Lee un número y el tipo de objeto (ofType) y retorna una lista con ambos.
+ *
+ * @return Lista con el valor numérico y el tipo de objeto.
+ */
   final public ArrayList<Object> pick() throws ParseException {Token n;
   ArrayList<Object> of = new ArrayList<Object>();
     jj_consume_token(PICK);
@@ -1094,6 +1678,12 @@ ArrayList<Object> out = new ArrayList<Object>();
     throw new Error("Missing return statement in function");
 }
 
+/**
+ * Procesa la instrucción JUMP.
+ * Lee un número y una dirección (inDir o toThe) y retorna una lista con ambos.
+ *
+ * @return Lista con el valor numérico y la dirección.
+ */
   final public ArrayList<Object> jump() throws ParseException {Token n;
   ArrayList<Object> out = new ArrayList<Object>();
     jj_consume_token(JUMP);
@@ -1121,11 +1711,21 @@ ArrayList<Object> out2 = new ArrayList<>();
     throw new Error("Missing return statement in function");
 }
 
+/**
+ * Procesa la instrucción NOP.
+ * No realiza ninguna acción.
+ */
   final public void nop() throws ParseException {
     jj_consume_token(NOP);
     jj_consume_token(DOT);
 }
 
+/**
+ * Procesa la instrucción condicional IF.
+ * Lee la condición, el bloque THEN y, opcionalmente, el bloque ELSE, retornando una lista con ellos.
+ *
+ * @return Lista con la condición, bloque THEN y bloque ELSE.
+ */
   final public ArrayList<Object> conditional() throws ParseException {ArrayList<Object> condition;
   Map<Integer, ArrayList<Object>> block1;
   Map<Integer, ArrayList<Object>> block2;
@@ -1146,6 +1746,12 @@ ArrayList<Object> out = new ArrayList<Object>();
     throw new Error("Missing return statement in function");
 }
 
+/**
+ * Procesa la instrucción WHILE.
+ * Lee una condición y un bloque de instrucciones, retornando una lista con ambos.
+ *
+ * @return Lista con la condición y el bloque de instrucciones.
+ */
   final public ArrayList<Object> loop() throws ParseException {ArrayList<Object> instruction_ff = new ArrayList<Object>();
   ArrayList<Object> condition;
   Map<Integer, ArrayList<Object>> instructions;
@@ -1161,6 +1767,12 @@ instruction_ff.add(condition);
     throw new Error("Missing return statement in function");
 }
 
+/**
+ * Procesa la instrucción FOR ... REPEAT.
+ * Lee un número y un bloque de instrucciones, retornando una lista con ambos.
+ *
+ * @return Lista con el valor numérico y el bloque de instrucciones.
+ */
   final public ArrayList<Object> repeat() throws ParseException {ArrayList<Object> out = new ArrayList<Object>();
   Token n;
   Map<Integer, ArrayList<Object>> block;
@@ -1176,6 +1788,12 @@ out.add(n.image);
     throw new Error("Missing return statement in function");
 }
 
+/**
+ * Procesa una condición.
+ * Combina una de las condiciones: facing, canPut, canPick, canMove, canJump o not, y retorna una lista representativa.
+ *
+ * @return Lista que representa la condición evaluada.
+ */
   final public ArrayList<Object> condition() throws ParseException {ArrayList<Object> out2 = new ArrayList<Object>();
     switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
     case FACING:{
@@ -1229,6 +1847,12 @@ out2.add(NOT_);
     throw new Error("Missing return statement in function");
 }
 
+/**
+ * Procesa la instrucción FACING.
+ * Lee la orientación mediante O() y la retorna.
+ *
+ * @return La orientación.
+ */
   final public String facing() throws ParseException {String o;
     jj_consume_token(FACING);
     jj_consume_token(COLON);
@@ -1238,6 +1862,12 @@ out2.add(NOT_);
     throw new Error("Missing return statement in function");
 }
 
+/**
+ * Procesa la instrucción CANPUT.
+ * Lee un número y el tipo de objeto (ofType) y retorna una lista con ambos.
+ *
+ * @return Lista con el valor numérico y el tipo de objeto.
+ */
   final public ArrayList<Object> canPut() throws ParseException {Token n;
   ArrayList<Object> of = new ArrayList<Object>();
     jj_consume_token(CANPUT);
@@ -1252,6 +1882,12 @@ ArrayList<Object> out = new ArrayList<Object>();
     throw new Error("Missing return statement in function");
 }
 
+/**
+ * Procesa la instrucción CANPICK.
+ * Lee un número y el tipo de objeto (ofType) y retorna una lista con ambos.
+ *
+ * @return Lista con el valor numérico y el tipo de objeto.
+ */
   final public ArrayList<Object> canPick() throws ParseException {Token n;
   ArrayList<Object> of = new ArrayList<Object>();
     jj_consume_token(CANPICK);
@@ -1266,6 +1902,12 @@ ArrayList<Object> out = new ArrayList<Object>();
     throw new Error("Missing return statement in function");
 }
 
+/**
+ * Procesa la instrucción CANMOVE.
+ * Lee un número y una dirección (inDir o toThe) y retorna una lista con ambos.
+ *
+ * @return Lista con el valor numérico y la dirección.
+ */
   final public ArrayList<Object> canMove() throws ParseException {Token n;
   ArrayList<Object> out = new ArrayList<Object>();
     jj_consume_token(CANMOVE);
@@ -1293,6 +1935,12 @@ ArrayList<Object> out2 = new ArrayList<Object>();
     throw new Error("Missing return statement in function");
 }
 
+/**
+ * Procesa la instrucción CANJUMP.
+ * Lee un número y una dirección (inDir o toThe) y retorna una lista con ambos.
+ *
+ * @return Lista con el valor numérico y la dirección.
+ */
   final public ArrayList<Object> canJump() throws ParseException {Token n;
   ArrayList<Object> out = new ArrayList<Object>();
     jj_consume_token(CANJUMP);
@@ -1320,6 +1968,12 @@ ArrayList<Object> out2 = new ArrayList<Object>();
     throw new Error("Missing return statement in function");
 }
 
+/**
+ * Procesa la instrucción NOT.
+ * Lee una condición y la retorna.
+ *
+ * @return Lista que representa la condición negada.
+ */
   final public ArrayList<Object> not() throws ParseException {ArrayList<Object> out = new ArrayList<Object>();
     jj_consume_token(NOT);
     jj_consume_token(COLON);
@@ -1328,6 +1982,13 @@ ArrayList<Object> out2 = new ArrayList<Object>();
     throw new Error("Missing return statement in function");
 }
 
+/**
+ * Procesa la llamada a un procedimiento.
+ * Lee el nombre y los parámetros del procedimiento, retornando un mapa con estos datos.
+ *
+ * @param t2 Token que contiene el nombre inicial del procedimiento.
+ * @return Mapa con las claves "name" (lista de nombres) y "params" (lista de parámetros).
+ */
   final public Map<String,Object> procedure_call(Token t2) throws ParseException {ArrayList<Object> name = new ArrayList<Object>();
   ArrayList<String> params = new ArrayList<String>();
   Map<String, Object> out = new HashMap<>();
@@ -1401,7 +2062,7 @@ out.put("name", name);
 	   jj_la1_0 = new int[] {0x0,0x20,0x20,0x21,0x0,0x0,0x0,0xa7f840,0x0,0xa7f840,0x0,0x0,0x0,0x0,0x0,0x300,0x300,0x300,0x7e000000,0x300,0x300,0x0,};
 	}
 	private static void jj_la1_init_1() {
-	   jj_la1_1 = new int[] {0x2460,0x200a,0x200a,0x200a,0x2000,0x400,0x2000,0x2002,0x2460,0x2002,0x3000,0x70000,0x1b0000,0x1e00000,0x6000000,0x0,0x0,0x0,0x0,0x0,0x0,0x400,};
+	   jj_la1_1 = new int[] {0x2460,0x200a,0x200a,0x200a,0x2000,0x400,0x2000,0x2002,0x2460,0x2002,0x3000,0x1c000,0x6c000,0x780000,0x1800000,0x0,0x0,0x0,0x0,0x0,0x0,0x400,};
 	}
   final private JJCalls[] jj_2_rtns = new JJCalls[1];
   private boolean jj_rescan = false;
@@ -1614,7 +2275,7 @@ out.put("name", name);
   /** Generate ParseException. */
   public ParseException generateParseException() {
 	 jj_expentries.clear();
-	 boolean[] la1tokens = new boolean[59];
+	 boolean[] la1tokens = new boolean[57];
 	 if (jj_kind >= 0) {
 	   la1tokens[jj_kind] = true;
 	   jj_kind = -1;
@@ -1631,7 +2292,7 @@ out.put("name", name);
 		 }
 	   }
 	 }
-	 for (int i = 0; i < 59; i++) {
+	 for (int i = 0; i < 57; i++) {
 	   if (la1tokens[i]) {
 		 jj_expentry = new int[1];
 		 jj_expentry[0] = i;
