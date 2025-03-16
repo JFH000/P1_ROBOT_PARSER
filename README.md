@@ -1,6 +1,7 @@
 ## ROBOT PARSER WITH JAVACC
 
-Robot.jj ->  `JavaCC\JavaCC\source\uniandes\lym\robot\control\Robot.jj`
-Project  ->  `JavaCC\JavaCC` this one can be imported by eclipse.
+Robot.jj ->  `robotObstacles (3)\robotObstacles\source\uniandes\control\Robot.jj`
+Interpreter.java used -> `robotObstacles (3)\robotObstacles\source\uniandes\control\Interpreter.java`
+Project  ->  `robotObstacles (3)\robotObstacles` this one can be imported by eclipse.
 
 :D
